@@ -22,4 +22,5 @@ English explanation
 ```
 
 "IF ... IS NULL" and "CREATE..." are used to avoid creating a duplicate database.
+
 Without this condition, the same database could be created twice or more.
