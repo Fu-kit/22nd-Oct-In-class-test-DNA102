@@ -7,7 +7,6 @@ If your SQL statement is successful, you may see something like that;
 ## 🧩 Step 1: Create the database
 -------------------------------------------------------------------------
 
-**Script chunk**
 ```sql
 -- 1) If 'InvoiceDB' does not exist, please create it
 IF DB_ID('InvoiceDB') IS NULL
