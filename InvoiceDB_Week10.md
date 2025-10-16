@@ -15,8 +15,9 @@ GO
 
 USE InvoiceDB;
 GO
-English explanation
 ```
+English explanation
+
 "GO" is needed to run each function (CREATE and USE).
 
 "IF ... IS NULL" and "CREATE..." are used to avoid creating a duplicate database.
