@@ -1,0 +1,114 @@
+-https://adci.instructure.com/courses/320/pages/week-10-learning-resources?module_item_id=13643
+
+
+Advanced SQL and PL/SQL Programming
+Week 10: DNA102 Introduction to Database Systems
+
+Learning Objectives:
+By the end of this worksheet, you should be able to:
+1. Write and execute stored procedures in PL/SQL
+2. Use set operators to combine and manipulate data
+3. Implement eﬀicient SQL operators for data manipulation
+4. Apply advanced data manipulation techniques
+5. Develop a complex PL/SQL program to solve a business problem
+
+Introduction:
+This worksheet provides hands-on practice with advanced SQL data manipulation statements
+and PL/SQL programming. We’ll be working with our CompanyDB, applying the concepts
+covered in the lecture to solve real-world business scenarios.
+
+Setup:
+Ensure you have: 1. Access to your SQL Server instance with the CompanyDB database
+2. SQL Server Management Studio (SSMS) or Azure Data Studio installed 3. Necessary
+permissions to create stored procedures and manipulate data
+
+-----------------------------------------------------------------------------------------
+Part 1: Writing Stored Procedures
+
+Exercise 1: Create a Basic Stored Procedure Create a stored procedure named
+sp_GetEmployeesByDepartment that retrieves all employees in a given department.
+
+'''sql
+CREATE PROCEDURE sp_GetEmployeesByDepartment
+@DepartmentID INT
+AS
+BEGIN
+SELECT e.EmployeeID, e.FirstName, e.LastName, e.Salary
+FROM Employees e
+WHERE e.DepartmentID = @DepartmentID
+END
+Execute the procedure for the IT department (assume DepartmentID 1 is IT):
+EXEC sp_GetEmployeesByDepartment @DepartmentID = 1
+Exercise 2: Stored Procedure with Error Handling Create a stored procedure named
+sp_GiveRaise that gives an employee a raise by a certain percentage. Include error handling
+for invalid employee IDs or negative percentages.
+CREATE PROCEDURE sp_GiveRaise
+@EmployeeID INT,
+@RaisePercentage DECIMAL(5,2)
+AS
+BEGIN
+BEGIN TRY
+IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID)
+THROW 50001, 'Invalid Employee ID', 1
+IF @RaisePercentage <= 0
+THROW 50002, 'Raise percentage must be positive', 1
+UPDATE Employees
+SET Salary = Salary * (1 + @RaisePercentage / 100)
+WHERE EmployeeID = @EmployeeID
+SELECT 'Raise given successfully' AS Result
+END TRY
+BEGIN CATCH
+SELECT ERROR_MESSAGE() AS ErrorMessage
+END CATCH
+END
+Test the procedure with valid and invalid inputs:
+2
+EXEC sp_GiveRaise @EmployeeID = 1, @RaisePercentage = 10
+EXEC sp_GiveRaise @EmployeeID = 999, @RaisePercentage = 10
+EXEC sp_GiveRaise @EmployeeID = 1, @RaisePercentage = -5
+Part 2: Set Operators
+Exercise 3: Using UNION and UNION ALL Write queries to: a) List all cities where
+we have either customers or suppliers, without duplicates. b) List all products that are either
+ordered or kept in inventory, including duplicates.
+Exercise 4: Using INTERSECT and EXCEPT Write queries to: a) Find customers who
+have placed orders but have never given feedback. b) Identify employees who are not currently
+assigned to any project.
+Part 3: Eﬀicient Use of SQL Operators
+Exercise 5: Optimising a Complex Query Optimise the following query:
+SELECT e.EmployeeID, e.FirstName, e.LastName, d.DepartmentName,
+(SELECT COUNT(*) FROM Projects p WHERE p.DepartmentID = e.DepartmentID) AS ProjectCoun
+FROM Employees e
+JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE e.Salary > (SELECT AVG(Salary) FROM Employees)
+AND e.EmployeeID IN (SELECT DISTINCT ManagerID FROM Employees WHERE ManagerID IS NOT NULL)
+ORDER BY ProjectCount DESC
+Hint: Consider using CTEs, JOINs instead of subqueries, and appropriate indexes.
+Part 4: Advanced Data Manipulation Techniques
+Exercise 6: Using MERGE Statement Write a MERGE statement to synchronise the
+Inventory table with the latest order information. If a product exists in Inventory, update
+its quantity; if it doesn’t exist, insert a new record.
+Exercise 7: Implementing a Recursive CTE Create a recursive CTE to display the
+employee hierarchy (managers and their subordinates) up to 3 levels deep.
+3
+Part 5: Practical PL/SQL Programming Exercise
+Exercise 8: Order Processing System Develop a comprehensive order processing system
+using PL/SQL. The system should:
+1. Create a new order for a given customer
+2. Add multiple products to the order
+3. Calculate the total order amount with discounts
+4. Update inventory levels
+5. Generate an order summary
+Implement this as a stored procedure named sp_ProcessOrder with appropriate error handling
+and transaction management.
+Conclusion:
+You’ve now practiced advanced SQL data manipulation techniques and PL/SQL programming.
+These skills are crucial for developing eﬀicient and robust database applications.
+Additional Resources:
+• SQL Server Stored Procedures
+• Set Operators
+• Query Processing Architecture Guide
+Next Steps:
+Review the execution plans of your queries and stored procedures. Try to identify areas for
+further optimisation. In the next session, we’ll explore database security and transaction
+management in depth.
+4
