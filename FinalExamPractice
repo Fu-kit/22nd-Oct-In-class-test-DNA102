@@ -1,0 +1,193 @@
+Hello\! I'd be happy to help you with your DNA102 questions. Here are the answers to your study points.
+
+## 💾 Section A
+
+### Q1. What is PL/SQL? What is the purpose of this?
+
+  * **PL/SQL** stands for **Procedural Language/SQL**.
+  * **Purpose:** It's an **extension** of SQL that integrates procedural programming capabilities (like loops, conditional statements, and variables) with the data manipulation and querying power of SQL. This allows developers to write complete programs, known as **stored procedures, functions, and triggers**, to execute complex business logic directly within the database, which often improves performance and security.
+
+### Q2. Define and describe a statement and give examples of the pro and con.
+
+A **statement** in SQL/PL/SQL is a command or instruction that is executed by the database management system (DBMS). It performs a specific task, such as querying data, modifying data, or controlling database objects.
+
+| Aspect | Description |
+| :--- | :--- |
+| **Definition** | A complete command that can be processed by the database engine. |
+| **Examples** | 
+`SELECT * FROM Employees;` (Querying data), 
+`INSERT INTO Products VALUES (1, 'Laptop');` (Modifying data), 
+`CREATE TABLE Customers (...);
+` (Controlling database objects). |
+
+| | **Pros** | **Cons** |
+| :--- | :--- | :--- |
+| **Example** | **Modularity** - A single `UPDATE` statement can change many records. | **Resource Usage** - Complex `SELECT` or `JOIN` statements can be resource-intensive and slow if not optimized. |
+| **Example** | **Readability** - Simple DDL (Data Definition Language) statements like `CREATE TABLE` clearly define the database structure. | **Security Risk** - Statements can be vulnerable to **SQL Injection** if user input isn't properly sanitized. |
+
+### Q3. Explain the concept of the following terms:
+
+  * **Query:** An SQL command used to **retrieve** data from a database.
+  * **Statement:** A complete SQL **command** that performs a specific action (e.g., retrieve, insert, update, or delete data, or define database objects).
+  * **Table:** A fundamental database object used to **store data** in a structured format with rows (records) and columns (fields).
+  * **Schema:** A **logical collection** of database objects (like tables, views, procedures, etc.) owned by a single user or application, acting as a container or namespace.
+
+-----
+
+## 💻 Section B: Database Operations and Concepts
+
+### Normalization: $0NF \to 1NF \to 2NF \to 3NF$ (when necessary)
+
+**Normalization** is the process of structuring a relational database to reduce data **redundancy** and improve **data integrity**.
+
+  * **0NF (Zero/Unnormalized Form):** Data is stored in one large table with repeating groups and redundant information.
+  * **1NF (First Normal Form):** Eliminates repeating groups by ensuring that each cell contains only a single, atomic value.
+  * **2NF (Second Normal Form):** Meets 1NF, and all non-key attributes are **fully dependent** on the primary key (addresses partial dependencies).
+  * **3NF (Third Normal Form):** Meets 2NF, and all attributes are dependent only on the primary key, not on other non-key attributes (addresses transitive dependencies).
+
+### Given the query, do some manipulation:
+
+#### Find the top 3 customers with the greatest amount.
+
+```sql
+SELECT 
+    CustomerName, 
+    SUM(Amount) AS TotalAmount
+FROM 
+    Orders
+GROUP BY 
+    CustomerName
+ORDER BY 
+    TotalAmount DESC
+LIMIT 3; -- Use TOP 3 in SQL Server or ROWNUM in Oracle
+```
+
+#### Calculate the average amount for a certain month.
+
+Assuming a column named `OrderDate` in a table named `Orders`:
+
+```sql
+SELECT 
+    AVG(Amount) AS AverageAmount
+FROM 
+    Orders
+WHERE 
+    STRFTIME('%Y-%m', OrderDate) = '2025-10'; -- Example for October 2025 (syntax depends on DBMS)
+-- Alternative for specific month/year: WHERE MONTH(OrderDate) = 10 AND YEAR(OrderDate) = 2025;
+```
+
+### Query Optimization and Indexing
+
+  * **Explain the concept?**
+
+      * **Query Optimization:** The process of ensuring that a database query executes in the most **efficient** manner possible (using the least amount of resources and time). The database's **query optimizer** engine determines the best execution plan.
+      * **Indexing:** The creation of special **lookup structures** on one or more columns of a table, similar to a book's index. These structures allow the database to quickly locate data without having to scan the entire table.
+
+  * **What are the advantages and potential drawback of using index?**
+
+| **Advantages (Pros)** | **Drawbacks (Cons)** |
+| :--- | :--- |
+| **Faster Data Retrieval:** Significantly speeds up `SELECT` queries, especially those with `WHERE` clauses, `JOIN`s, and `ORDER BY`. | **Slower Data Modification:** Indexes must be updated every time a record is `INSERT`ed, `UPDATE`d, or `DELETE`d, slowing down DML operations. |
+| **Unique Constraints:** Indexes are necessary to enforce **primary keys** and unique constraints. | **Disk Space:** Indexes consume additional disk space. |
+| **Sorting:** Improves performance for operations that require data sorting (`ORDER BY`). | **Maintenance Overhead:** The database must manage the index structures, adding overhead. |
+
+  * **Optimize the previous query.**
+      * To optimize the query "Find the top 3 customers with the greatest amount," you should create an **index** on the columns used in the filtering/joining and sorting.
+      * **Optimization Strategy:** Create a **composite index** on the `Orders` table: `(CustomerName, Amount)`.
+      * **SQL for Index Creation:**
+        ```sql
+        CREATE INDEX idx_customer_amount ON Orders (CustomerName, Amount);
+        ```
+
+### Database Security and Integrity
+
+#### How to ensure a database security? Set up for user access (passwords, security question)
+
+Database security is ensured through a multi-layered approach:
+
+1.  **Authentication & Authorization:**
+      * **Strong Passwords** and multi-factor authentication for users.
+      * **Role-Based Access Control (RBAC):** Users are assigned roles, and permissions (e.g., `SELECT`, `INSERT`, `UPDATE`) are granted to roles, ensuring the **principle of least privilege**.
+2.  **Encryption:** Encrypting sensitive data **at rest** (in the database) and **in transit** (during transmission).
+3.  **Auditing:** Logging all database activity to detect and investigate suspicious behavior.
+4.  **Network Security:** Using firewalls and Virtual Private Clouds (VPCs) to restrict database access only to authorized applications and networks.
+
+#### Explain the concept of Integrity and what are the advantages and disadvantages.
+
+**Integrity** (or **Data Integrity**) refers to the **accuracy, consistency, and reliability** of the data stored in a database. It ensures that the data is correct and follows predefined rules and constraints.
+
+| Aspect | Description |
+| :--- | :--- |
+| **Types of Integrity** | **Entity Integrity** (Primary key must be unique and not null), **Referential Integrity** (Foreign keys must reference an existing primary key or be null), **Domain Integrity** (Data types/ranges must be valid). |
+
+| **Advantages** | **Disadvantages** |
+| :--- | :--- |
+| **Data Quality:** Ensures data is reliable for business decisions and reporting. | **Insertion/Update Restrictions:** Constraints can prevent certain operations, potentially slowing down data entry if the data violates a rule. |
+| **Consistency:** Maintains correct relationships between tables (e.g., preventing orphaned records). | **Complexity:** Implementing and managing complex integrity rules (like triggers) can increase database design complexity. |
+
+#### Explain how it works with a cloud-based database services (Azure)
+
+In a cloud-based service like **Azure SQL Database**:
+
+  * **Security:** Azure provides built-in features like **Azure Active Directory (AAD)** integration for authentication, **Transparent Data Encryption (TDE)** for data at rest, and **Azure Defender for SQL** for threat detection. Security is largely managed through the cloud platform's robust infrastructure.
+  * **Integrity:** Data integrity principles (Primary Keys, Foreign Keys, CHECK constraints) work the **same way** as in an on-premise database, as they are fundamental to the relational database engine itself. The cloud service simply hosts and manages the engine.
+
+### The relationship between Machine Learning integration with database.
+
+The relationship is primarily one of **data supply** and **functional extension**:
+
+1.  **Data Source:** The database serves as the **repository of truth** and the primary source of historical, structured data used to **train** Machine Learning (ML) models (e.g., customer transaction history, sales records).
+2.  **Operationalization:** Once an ML model is trained (e.g., a fraud detection model or a recommendation engine), it can be **integrated** back into the database environment.
+      * **In-Database ML:** Some modern DBMS (including cloud ones) allow ML models to be run **directly within the database** using stored procedures, enabling real-time scoring of incoming data without moving it out (e.g., immediately classifying a new order as fraudulent).
+      * **ML-Powered Applications:** Database content can be consumed by applications that use ML for features like predictive analytics, customer segmentation, or product recommendations.
+
+### Create a table for some additional information. For instance, in CompanyDB, there is no Products table, you need to create this.
+
+Assuming a relational database (like SQL Server, MySQL, or PostgreSQL):
+
+```sql
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    SupplierID INT,
+    UnitPrice DECIMAL(10, 2) NOT NULL CHECK (UnitPrice >= 0),
+    StockQuantity INT DEFAULT 0,
+    CategoryID INT,
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID), -- Assumes a Suppliers table exists
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)  -- Assumes a Categories table exists
+);
+```
+
+### Create a view to help different user to have a better quick view of the database.
+
+Let's create a view that combines product and supplier information for quick reporting by a sales team.
+
+```sql
+CREATE VIEW Sales_Product_Summary_V AS
+SELECT
+    p.ProductID,
+    p.ProductName,
+    p.UnitPrice,
+    p.StockQuantity,
+    s.SupplierName,
+    c.CategoryName
+FROM
+    Products p
+JOIN
+    Suppliers s ON p.SupplierID = s.SupplierID
+JOIN
+    Categories c ON p.CategoryID = c.CategoryID
+WHERE
+    p.StockQuantity > 0; -- Only show products currently in stock
+```
+
+### Write a query to retrieve a record for each item in Products table, including all the item information.
+
+This is a simple `SELECT` query to retrieve all rows and all columns from the `Products` table.
+
+```sql
+SELECT
+    *
+FROM
+    Products;
+```
