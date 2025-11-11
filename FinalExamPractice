@@ -49,7 +49,7 @@ A **statement** in SQL/PL/SQL is a command or instruction that is executed by th
 
 #### Find the top 3 customers with the greatest amount.
 
-```sql
+`
 SELECT 
     CustomerName, 
     SUM(Amount) AS TotalAmount
@@ -60,7 +60,7 @@ GROUP BY
 ORDER BY 
     TotalAmount DESC
 LIMIT 3; -- Use TOP 3 in SQL Server or ROWNUM in Oracle
-```
+`
 
 #### Calculate the average amount for a certain month.
 
