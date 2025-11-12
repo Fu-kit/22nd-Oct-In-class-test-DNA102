@@ -1,3 +1,5 @@
+Do not update during an exam
+
 -- Create database
 IF DB_ID('FEE_DB') IS NULL
     CREATE DATABASE FEE_DB;
