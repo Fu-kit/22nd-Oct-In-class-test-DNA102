@@ -1,3 +1,66 @@
+-- Create database
+IF DB_ID('FEE_DB') IS NULL
+    CREATE DATABASE FEE_DB;
+GO
+
+USE School_Attendance_DB;
+GO
+
+-- Drop tables if they exist (for testing)
+IF OBJECT_ID('Customers', 'U') IS NOT NULL DROP TABLE Customers;
+IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
+IF OBJECT_ID('Orders', 'U') IS NOT NULL DROP TABLE Orders;
+IF OBJECT_ID('OrderDetails', 'U') IS NOT NULL DROP TABLE OrderDetails;
+GO
+
+-- 1. Customers Table (Primary Key: CustomerID)
+-- This table stores unique customer information.
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(100) NOT NULL,
+    CustomerEmail VARCHAR(100) UNIQUE NOT NULL
+);
+
+---
+
+-- 2. Products Table (Primary Key: ProductID)
+-- This table stores unique product information (ProductName and Price).
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL
+);
+
+---
+
+-- 3. Orders Table (Primary Key: OrderID)
+-- This table stores unique order header information.
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY, -- Using the original OrderID as the key
+    CustomerID INT NOT NULL,
+    OrderDate DATE NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+---
+
+-- 4. OrderDetails Table (Composite Primary Key: OrderID, ProductID - or use a Surrogate Key)
+-- This table links Orders and Products (the many-to-many relationship) and stores item-specific data (Quantity).
+CREATE TABLE OrderDetails (
+    OrderDetailID INT PRIMARY KEY,
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL,
+    -- Composite unique key to ensure a product is not listed twice in the same order
+    UNIQUE (OrderID, ProductID),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+
+
+
+
 John Doe 
 OrderID CustomerName ProductName Quantity Price OrderDate CustomerEmail 
 1 
