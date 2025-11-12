@@ -1,0 +1,43 @@
+John Doe 
+OrderID CustomerName ProductName Quantity Price OrderDate CustomerEmail 
+1 
+Laptop 
+1 
+2 
+John Doe 
+Jane Smith 
+Mouse 
+Keyboard 
+1 
+2 
+1 
+1000 2023-05
+01 
+20 
+50 
+2023-05
+01 
+2023-05
+02 
+john@email.com 
+john@email.com 
+jane@email.com 
+2NF: Create separate tables for Orders, Customers, Products, and OrderDetails – Remove partial 
+dependencies. 
+Orders: OrderID, CustomerID, OrderDate 
+Customers: CustomerID, CustomerName, CustomerEmail 
+Products: ProductID, ProductName, Price 
+OrderDetails: OrderDetailID, OrderID, ProductID, Quantity 
+3NF: - Remove transitive dependencies. No changes needed in this case, as there are no transitive 
+dependencies in the 2NF tables. 
+Optimization: 
+Add indexes 
+Use a CTE or derived table to pre-aggregate Orders data 
+Consider partitioning the Orders table by Order Date 
+SELETE … 
+FROM … 
+JOIN … 
+GROUP BY 
+ORDER BY  
+Security and Integrity 
+Constraints: PRIMARY KEY(OrderID, ProductID, etc. ), FOREIGN KEY, CHECK , UNIQUE 
