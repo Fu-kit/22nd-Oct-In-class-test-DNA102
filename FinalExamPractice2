@@ -1,0 +1,199 @@
+Do not update during an exam.
+
+
+## 📝 Section A: Language and Structure
+
+### Q1. What is T-SQL? What are the key features and advantages it offers over standard SQL?
+
+  * **T-SQL** stands for **Transact-SQL**. It is the proprietary procedural extension to SQL used by **Microsoft SQL Server** and Azure SQL Database.
+  * **Key Features:** T-SQL adds procedural programming elements such as:
+      * **Control-of-Flow Language:** `IF...ELSE`, `WHILE` loops, `BEGIN...END` blocks.
+      * **Local Variables:** Using the `@` prefix (e.g., `@MyVariable`).
+      * **Stored Procedures** and **Functions** (for reusable code).
+      * **Error Handling:** Using `TRY...CATCH` blocks.
+  * **Advantages over Standard SQL:** It allows developers to implement complex business logic directly within the database, improving **performance** (by reducing network trips) and **security** (by encapsulating operations in procedures).
+
+-----
+
+### Q2. Define and describe a function (in the context of SQL/PL/SQL) and give examples of its advantages and disadvantages.
+
+A **function** (specifically a **User-Defined Function** or UDF) is a named, reusable block of procedural code that accepts input parameters, performs a calculation or operation, and **must return a single value** or a table. Unlike a stored procedure, a UDF is typically designed to be used within a SQL query (e.g., in a `SELECT` clause, `WHERE` clause, or `HAVING` clause).
+
+| Aspect | Description |
+| :--- | :--- |
+| **Definition** | A reusable, pre-compiled block of code that accepts input and *returns a value*. |
+| **Examples** | A scalar function to calculate tax on a price, or a table-valued function to return a filtered list of employees. |
+
+| | **Advantages** (Pros) | **Disadvantages** (Cons) |
+| :--- | :--- | :--- |
+| **Example** | **Modularity & Reusability:** Reduces repetitive code; a complex calculation is written once and used everywhere. | **Performance Overhead:** In some systems, excessive use of scalar functions in queries can prevent the optimizer from using indexes efficiently (known as **SQL SARGability** issues). |
+| **Example** | **Improved Readability:** Complex logic is hidden inside the function, making the main query cleaner and easier to understand. | **Data Modification:** Most UDFs (especially scalar ones) **cannot perform DML** (`INSERT`, `UPDATE`, `DELETE`) operations, limiting their scope compared to stored procedures. |
+
+-----
+
+### Q3. Explain the concept of the following terms:
+
+  * **DDL (Data Definition Language):** SQL commands used to **create, modify, and delete** database objects like tables, indexes, and schemas.
+  * **DML (Data Manipulation Language):** SQL commands used to **insert, retrieve, modify, and delete** *data* within database tables.
+  * **View:** A **virtual table** whose content is defined by a query. It does not store data itself but provides a secure, simplified, and aggregated representation of data from one or more underlying tables.
+  * **Index:** A special **lookup structure** built on one or more columns of a table to speed up data retrieval operations.
+
+-----
+
+## 📊 Section B: Operations, Optimization, and Security
+
+### Normalization and Data Manipulation
+
+### Denormalization: Explain the concept of denormalization and when it is used. Provide one advantage and one disadvantage.
+
+  * **Concept:** Denormalization is the process of intentionally **introducing redundancy** into a database (often from 3NF back toward 2NF) by adding duplicate columns or joining tables together *before* storage.
+  * **When Used:** It's primarily used in **data warehousing** or **OLAP (Online Analytical Processing)** systems where read performance (query speed for reporting) is prioritized over write performance and minimal redundancy.
+  * **Advantage:** **Significantly improves query performance** for complex reports by reducing the number of costly `JOIN` operations required at query time.
+  * **Disadvantage:** **Increases data redundancy** and makes data maintenance more complex, as updates to duplicated data must be applied consistently across multiple locations.
+
+### Given the query, do some manipulation: Find the customer who has the lowest total number of orders.
+
+```sql
+SELECT
+    CustomerID,
+    COUNT(OrderID) AS TotalOrders
+FROM
+    Orders
+GROUP BY
+    CustomerID
+ORDER BY
+    TotalOrders ASC
+LIMIT 1; -- Use FETCH FIRST 1 ROW ONLY or ROWNUM = 1 depending on DBMS
+```
+
+### Calculate the running total (cumulative sum) of sales for the current quarter.
+
+This requires a **Window Function**, specifically `SUM()` with the `OVER` clause.
+
+Assuming a `Sales` table with `SaleDate` and `Amount`:
+
+```sql
+SELECT
+    SaleDate,
+    Amount,
+    SUM(Amount) OVER (ORDER BY SaleDate) AS RunningTotal
+FROM
+    Sales
+WHERE
+    SaleDate >= '2025-10-01' AND SaleDate < '2026-01-01' -- Assuming Q4 2025
+ORDER BY
+    SaleDate;
+```
+
+### Modify the existing `Customers` table to add a new column called `LoyaltyLevel` with a default value of 'Bronze' and update 5 existing customers to 'Gold'.
+
+**Step 1: Add the new column (DDL)**
+
+```sql
+ALTER TABLE Customers
+ADD COLUMN LoyaltyLevel VARCHAR(20) DEFAULT 'Bronze';
+```
+
+**Step 2: Update existing customers (DML)**
+
+```sql
+UPDATE Customers
+SET LoyaltyLevel = 'Gold'
+WHERE CustomerID IN (101, 105, 120, 133, 150); -- Example Customer IDs
+```
+
+### Create a Stored Procedure that takes a `CustomerID` as an input parameter and returns all their order details.
+
+This syntax is common for T-SQL (SQL Server):
+
+```sql
+CREATE PROCEDURE GetCustomerOrderDetails
+    @CustID INT
+AS
+BEGIN
+    SELECT
+        o.OrderID,
+        o.OrderDate,
+        o.TotalAmount,
+        od.ProductName,
+        od.Quantity
+    FROM
+        Orders o
+    JOIN
+        OrderDetails od ON o.OrderID = od.OrderID
+    WHERE
+        o.CustomerID = @CustID;
+END;
+```
+
+### Write a query using a JOIN operation to retrieve the product name, unit price, and the corresponding supplier name for every product.
+
+```sql
+SELECT
+    p.ProductName,
+    p.UnitPrice,
+    s.SupplierName
+FROM
+    Products p
+INNER JOIN
+    Suppliers s ON p.SupplierID = s.SupplierID;
+```
+
+-----
+
+### Query Optimization and Indexing
+
+### Explain the concept of an Execution Plan and its role in query performance. What is the difference between a Clustered Index and a Non-Clustered Index?
+
+  * **Execution Plan:** A detailed **step-by-step roadmap** created by the database's query optimizer that outlines the sequence of operations (e.g., table scans, index lookups, joins, sorts) the database will perform to execute a SQL query. Its role is crucial as it shows *exactly* how the database accesses data, allowing DBAs to identify performance bottlenecks (like full table scans) and optimize the query or indexing strategy.
+  * **Clustered Index:**
+      * **Structure:** Stores the actual **data rows** in the table according to the index key.
+      * **Count:** A table can have **only one** Clustered Index.
+      * **Effect:** The table data *is* the index. Often defined on the **Primary Key**.
+  * **Non-Clustered Index:**
+      * **Structure:** A separate structure (like a B-Tree) that contains the index key and a **pointer** (row ID or clustered key) to the actual data row's physical location.
+      * **Count:** A table can have **many** Non-Clustered Indexes.
+      * **Effect:** It's a true "index" separate from the data, used for fast lookups.
+
+### Provide three specific techniques (besides indexing) that a Database Administrator can use to optimize a poorly performing SELECT query.
+
+1.  **Ensuring Statistics are Up-to-Date:** The query optimizer relies on database **statistics** (information about the data distribution in columns) to choose the best execution plan. Outdated statistics can lead to poor plan choices.
+2.  **Using `EXPLAIN PLAN` (or equivalent):** Analyzing the execution plan to identify expensive operations (e.g., hash joins, unnecessary sorts) and rewriting the SQL to eliminate them.
+3.  **Rewriting Subqueries/Views to JOINs:** Sometimes, complex, correlated subqueries or deeply nested views can be inefficiently handled by the optimizer and are better rewritten as simple **INNER** or **LEFT JOINs**.
+
+-----
+
+### Database Security and Integrity
+
+### Explain the concept of data **Confidentiality** in the context of database security and describe three methods used to achieve it.
+
+  * **Confidentiality:** The principle that data should be kept **private** and accessible only to authorized users and processes. It prevents the unauthorized disclosure of sensitive information.
+  * **Methods to Achieve Confidentiality:**
+    1.  **Encryption:** Using algorithms to scramble data so that it is unreadable without a decryption key. This includes **Transparent Data Encryption (TDE)** for data *at rest* and SSL/TLS for data *in transit*.
+    2.  **Access Control (Authorization):** Limiting user permissions so they can only see data necessary for their job (**Need-to-Know basis**). This is often implemented using **Views** (to hide columns or rows) and **Row-Level Security (RLS)**.
+    3.  **Data Masking/Redaction:** Hiding sensitive parts of the data (e.g., replacing all but the last four digits of a credit card number) when displaying it to users who don't need the full details.
+
+### Explain the concept of **Availability** and its importance in database systems. Describe what a common disaster recovery strategy, like backup and replication, achieves.
+
+  * **Availability:** The principle that data and the database system must be accessible and **operational** when required by users and applications, minimizing downtime.
+  * **Importance:** High availability is critical for mission-critical systems (e.g., e-commerce, banking) where downtime leads directly to loss of revenue and user trust.
+  * **What Backup and Replication Achieve:**
+      * **Backup:** Provides a point-in-time copy of the data used for recovery after a logical error (e.g., an accidental deletion). It protects against **data corruption/loss**.
+      * **Replication:** Creates and maintains a **live, synchronized copy** of the database on a separate server. This achieves **failover**, allowing the system to quickly switch to the replica server if the primary one fails, protecting against **downtime** and ensuring high **availability**.
+
+### Explain the differences and trade-offs between using a managed cloud database service (like Amazon RDS) versus hosting a database on a virtual machine (VM) in the cloud.
+
+| Feature | Managed Service (e.g., Amazon RDS) | VM Hosted Database (e.g., PostgreSQL on EC2) |
+| :--- | :--- | :--- |
+| **Setup & Maintenance** | **Low:** Automated patching, backups, and failover handled by the cloud provider. | **High:** DBA is responsible for OS patching, database installation, manual backups, and replication setup. |
+| **Control & Customization** | **Limited:** Restricted access to the OS; limited control over specific configuration files. | **Full:** Complete access to the OS and database configuration; can install custom drivers. |
+| **Cost Model** | **Higher Operational Cost:** Pay a premium for management, but lower labor cost. | **Lower Operational Cost (Potentially):** Pay only for the VM and storage, but higher labor cost. |
+| **Best For** | Applications needing fast deployment, high availability, and reduced management overhead. | Highly specialized, legacy, or heavily customized database environments. |
+
+### The relationship between **Big Data** (e.g., using Spark/Hadoop) and traditional relational databases. Explain how they complement each other.
+
+  * **Relationship:** They form a complementary **data ecosystem**, often with a relational database serving as the source or the end-point for analysis.
+  * **Traditional Relational Database (OLTP):** Excels at structured, normalized data, supporting high-volume, concurrent, transactional workloads (OLTP). It serves as the **source of truth** for core business operations.
+  * **Big Data Platforms (Spark/Hadoop):** Excels at storing, processing, and analyzing massive volumes of **unstructured or semi-structured data** using highly scalable distributed computing. It's used for complex, non-transactional analytical workloads.
+  * **Complementary Use:** The common flow involves **Exporting/ETL** (Extract, Transform, Load) core transactional data from the relational database into the Big Data platform (Data Lake) for large-scale processing, joining it with other external data sources, running machine learning models, and then **Importing** the resulting insights (e.g., customer churn scores or aggregated sales trends) back into the relational database for use in operational applications.
+
